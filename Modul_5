@@ -1,0 +1,72 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C layar1(0x27, 16, 2);
+
+const int triggerPin = 8;
+const int echoPin = 9;
+const int servoPin = 7;
+
+Servo myservo;
+
+void setup() {
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  layar1.begin(16, 2);
+  layar1.backlight();
+  
+  myservo.attach(servoPin);
+  
+  Serial.begin(9600);
+}
+
+void loop() {
+  long duration, distance;
+  
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) / 29.1;
+
+  if (distance >= 2 && distance <= 400) {
+    int servoPosition = map(distance, 2, 400, 1, 180);
+    myservo.write(servoPosition);
+    
+    int motorSpeed = map(distance, 2, 400, 0, 255);
+    if (motorSpeed > 255) motorSpeed = 255; // Batasi kecepatan maksimum menjadi 255
+    analogWrite(servoPin, motorSpeed);
+    
+    Serial.print("Distance: ");
+    Serial.print(distance);
+
+    layar1.setCursor(0, 0);
+    layar1.print("Jarak:");
+    layar1.setCursor(7, 0);
+    layar1.print(distance);
+    layar1.setCursor(10, 0);
+    layar1.print("cm");
+
+    Serial.print(" cm\tServo Position: ");
+    Serial.print(servoPosition);
+
+    layar1.setCursor(0, 1);
+    layar1.print("Posisi: ");
+    layar1.setCursor(8, 1);
+    layar1.print(servoPosition);
+    layar1.print("deg");
+
+    Serial.print("\tMotor Speed: ");
+    Serial.println(motorSpeed);
+  } else {
+    Serial.println("Out of range");
+    myservo.write(1); // Kembali ke posisi awal (1 derajat)
+    // analogWrite(servoPin, 0); // Matikan motor servo
+  }
+  
+  delay(100);
+}

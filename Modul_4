@@ -1,0 +1,30 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C layar1(0x27,16,2);
+int hasil;
+float lembab;
+
+void setup() {
+  // put your setup code here, to run once:
+  layar1.init();
+  layar1.backlight();
+  Serial.begin(9600);
+
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  hasil = analogRead(A1);
+  lembab=(100-((hasil/1023.00)*100));
+
+  layar1.setCursor(0,0);
+  layar1.print("Kelembapan:");
+  layar1.setCursor(11,0);
+  layar1.print(lembab);
+  layar1.setCursor(15,0);
+  layar1.print("%");
+
+  Serial.print("kelembapan : ");
+  Serial.println(lembab);
+  delay(2000);
+}
